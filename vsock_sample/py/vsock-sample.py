@@ -6,6 +6,8 @@
 import argparse
 import socket
 import sys
+import os
+
 
 
 class VsockStream:
@@ -53,9 +55,15 @@ class VsockListener:
             data = from_client.recv(1024).decode()
             if not data:
                 break
-            print(data)
-            data=data+" recieved"
-            from_client.sendall(data.encode())
+            print("cipher received:"+data)
+
+
+            stream = os.popen('echo $(aws kms decrypt --ciphertext-blob ' + data + ' --query Plaintext --output text)')
+            output = stream.read()
+
+            print("decrypted: "+output)
+
+            from_client.sendall(output.encode())
             from_client.close()
 
 
