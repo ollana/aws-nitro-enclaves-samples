@@ -18,19 +18,6 @@ git clone https://github.com/ollana/aws-nitro-enclaves-samples.git
 cd aws-nitro-enclaves-samples
 ```
 ```
-vi Dockerfile 
-```
-```
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: Apache-2.0
-
-FROM python:3.7.9-alpine3.12
-
-COPY vsock_sample/py/vsock-sample.py .
-
-CMD ["/usr/local/bin/python3", "vsock-sample.py", "server", "5005"]
-```
-```
 nitro-cli build-enclave --docker-dir ./ --docker-uri vsock-sample-server --output-file vsock_sample.eif
 ```
 ```
