@@ -22,6 +22,8 @@ class VsockStream:
     def send_data(self, data):
         """Send data to the remote endpoint"""
         self.sock.sendall(data)
+        rec_data=self.sock.recv(1024).decode()
+        print('received: ', rec_data)
         self.sock.close()
 
 
@@ -52,6 +54,8 @@ class VsockListener:
             if not data:
                 break
             print(data)
+            data=data+" recieved"
+            from_client.sendall(data.encode())
             from_client.close()
 
 
