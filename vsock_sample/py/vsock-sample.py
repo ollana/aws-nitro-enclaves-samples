@@ -7,6 +7,9 @@ import argparse
 import socket
 import sys
 import os
+import requests
+import json
+
 
 
 
@@ -33,8 +36,14 @@ def client_handler(args):
     client = VsockStream()
     endpoint = (args.cid, args.port)
     client.connect(endpoint)
-    msg = 'Hello, world!'
-    client.send_data(msg.encode())
+    msg = args.msg
+    credentials = fetch_aws_credentials()
+    req = {
+        'cipher': msg,
+        'kms_credentials': credentials
+
+    }
+    client.send_data(str.encode(json.dumps(req)))
 
 
 class VsockListener:
@@ -84,6 +93,7 @@ def main():
                                           help="Connect to a given cid and port.")
     client_parser.add_argument("cid", type=int, help="The remote endpoint CID.")
     client_parser.add_argument("port", type=int, help="The remote endpoint port.")
+    client_parser.add_argument("msg", type=string, help="The cipher to decrypt.")
     client_parser.set_defaults(func=client_handler)
 
     server_parser = subparsers.add_parser("server", description="Server",
@@ -98,6 +108,24 @@ def main():
     args = parser.parse_args()
     args.func(args)
 
+
+def fetch_aws_credentials():
+    """Fetch the AWS session token from the metadata service."""
+    instance_profile_response = requests.get(
+        'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
+    )
+    instance_profile_name = instance_profile_response.text
+
+    sec_credentials_response = requests.get(
+        f'http://169.254.169.254/latest/meta-data/iam/security-credentials/{instance_profile_name}'
+    )
+    response = sec_credentials_response.json()
+
+    return {
+        'aws_access_key_id' : response['AccessKeyId'],
+        'aws_secret_access_key' : response['SecretAccessKey'],
+        'aws_session_token' : response['Token']
+    }
 
 if __name__ == "__main__":
     main()
